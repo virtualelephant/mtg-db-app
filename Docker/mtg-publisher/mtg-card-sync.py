@@ -62,7 +62,7 @@ def publish_card(card):
         }
         channel.basic_publish(
             exchange='',
-            routing_key=QUEUE_NAME,
+            routing_key=CARD_QUEUE_NAME,
             body=str(card_message),
             properties=pika.BasicProperties(
                 delivery_mode=2  # Make message persistent
