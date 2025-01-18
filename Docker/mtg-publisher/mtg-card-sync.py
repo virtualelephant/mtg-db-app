@@ -2,8 +2,9 @@ import os
 import time
 import pika
 import logging
-from mtgsdk import Card
+from mtgsdk import Card, Set
 from urllib.error import HTTPError
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -67,16 +68,14 @@ def publish_card(card):
     except Exception as e:
         logger.error(f"Failed to publish card {card.name}: {e}")
 
-def fetch_cards():
+def fetch_cards_by_set(set_code):
     """Fetch cards and handle HTTP errors with retries."""
-    from datetime import datetime
-
     while True:
         try:
             start_time = datetime.now()
-            logger.info(f"{start_time}: Fetching all MTG cards...")
+            logger.info(f"{start_time}: Fetching MTG cards in set {set_code}...")
 
-            cards = Card.all()
+            cards = Card.where(set=set_code).all()
 
             end_time = datetime.now()
             logger.info(f"{end_time}: Successfully fetched all cards")
@@ -97,6 +96,24 @@ def fetch_cards():
         except Exception as e:
             logger.error(f"Error fetching cards: {e}")
             break  # Exit loop for unexpected errors
+
+def fetch_and_process_sets():
+    """Fetch all card sets and process them one by one"""
+    try:
+        start_time = datetime.now()
+        logger.info(f"{start_time}: Fetch all card sets...")
+
+        sets = Set.all()
+        
+        end_time = datetime.now()
+        logger.info(f"{end_time} Successfully fetched {len(sets)} sets.")
+        logger.info(f"Total time to fetch sets: {end_time - start_time}")
+
+        for mtg_set in sets:
+            logger.info(f"Processing set: {mtg_set.name} (code: {mtg_set.code})")
+            fetch_cards_by_set(mtg_set.code)
+    except Exception as e:
+        logger.error(f"Error fetching sets: {e}")
 
 # Run the script
 if __name__ == "__main__":
