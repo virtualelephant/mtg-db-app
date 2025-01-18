@@ -35,5 +35,5 @@ spec:
         - name: RABBITMQ_QUEUE
           value: "mtgcards"
         - name: MESSAGE_RATE
-          value: "1.0"
+          value: "100"
       restartPolicy: Always
