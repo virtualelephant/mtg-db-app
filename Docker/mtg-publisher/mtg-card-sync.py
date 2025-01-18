@@ -93,7 +93,7 @@ def publish_set(mtg_set, total_cards):
     except Exception as e:
         logger.error(f"Failed to publish set {mtg_set.name}: {e}")
 
-def fetch_cards_by_set(set_code):
+def fetch_cards_by_set(mtg_code):
     """Fetch cards and handle HTTP errors with retries."""
     set_code = mtg_set.code
     total_cards = 0
