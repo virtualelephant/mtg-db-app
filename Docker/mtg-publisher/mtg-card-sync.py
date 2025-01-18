@@ -20,7 +20,7 @@ else:
 RABBITMQ_USER = os.getenv('RABBITMQ_USER', 'deploy')
 RABBITMQ_PASS = os.getenv('RABBITMQ_PASS', 'VMware123!')
 QUEUE_NAME = os.getenv('RABBITMQ_QUEUE', 'mtgcards') 
-MESSAGE_RATE = float(os.getenv('MESSAGE_RATE', 1.0))
+MESSAGE_RATE = float(os.getenv('MESSAGE_RATE', 10))
 
 credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASS)
 
@@ -38,10 +38,10 @@ def create_connection():
             retry_delay = min(retry_delay * 2, max_delay)
 
 # Establish connection to RabbitMQ
-#connection = create_connection()
-#channel = connection.channel()
-#channel.queue_declare(queue=QUEUE_NAME, durable=True, arguments={"x-queue-type": "quorum"})
-#logger.info("Successfully declared queue")
+connection = create_connection()
+channel = connection.channel()
+channel.queue_declare(queue=QUEUE_NAME, durable=True, arguments={"x-queue-type": "quorum"})
+logger.info("Successfully declared queue")
 
 def publish_card(card):
     """Publish a card's data to the RabbitMQ queue."""
@@ -68,47 +68,28 @@ def publish_card(card):
     except Exception as e:
         logger.error(f"Failed to publish card {card.name}: {e}")
 
-def fetch_cards(queue):
+def fetch_cards():
     """Fetch cards and add them to the queue"""
     try:
         from datetime import datetime
         start_time = datetime.now()
 
         logger.info(f"{start_time}: Fetching all MTG cards...")
-        for card in Card.all():
-            queue.put(card) # Add cards to the queue
-            logger.debug(".", end="", flush=True) # DEBUG LOG
+        cards = Card.all()
         end_time = datetime.now()
+
         logger.info(f"{end_time}: Successfully fetched all cards")
         logger.info(f"Total time to fetch cards: {end_time - start_time}")
+
+        for card in cards:
+            publish_card(card)
+            time.sleep(1.0 / MESSAGE_RATE) # Rate-limiting publishing if specified
     except Exception as e:
         logger.error(f"Error fetching cards: {e}")
 
-def publish_cards_from_queue(queue, connection):
-    """Consume cards from the queue and publish to RabbitMQ"""
-    channel = connection.channel()
-    channel.queue_declare(queue=QUEUE_NAME, durable=True, arguments={"x-queue-type": "quorum"})
-    while not queue.empty():
-        card = queue.get()
-        publish_card(channel, card)
-        queue.task_done()
-        time.sleep(1.0 / MESSAGE_RATE)
-
+# Run the script
 if __name__ == "__main__":
-    card_queue = Queue(maxsize=100)  # Queue for holding cards
-    connection = create_connection()
-
-    # Use a ThreadPoolExecutor for parallel fetching and publishing
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        fetch_future = executor.submit(fetch_cards, card_queue)
-        publish_future = executor.submit(publish_cards_from_queue, card_queue, connection)
-
-        # Wait for both tasks to complete
-        for future in as_completed([fetch_future, publish_future]):
-            try:
-                future.result()
-            except Exception as e:
-                logger.error(f"Error in execution: {e}")
+    fetch_and_publish_cards()
 
     # Close connection
     connection.close()
