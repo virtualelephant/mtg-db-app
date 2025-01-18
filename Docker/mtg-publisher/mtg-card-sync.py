@@ -3,6 +3,7 @@ import time
 import pika
 import logging
 from mtgsdk import Card
+from urllib.error import HTTPError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -67,23 +68,35 @@ def publish_card(card):
         logger.error(f"Failed to publish card {card.name}: {e}")
 
 def fetch_cards():
-    """Fetch cards and add them to the queue"""
-    try:
-        from datetime import datetime
-        start_time = datetime.now()
+    """Fetch cards and handle HTTP errors with retries."""
+    from datetime import datetime
 
-        logger.info(f"{start_time}: Fetching all MTG cards...")
-        cards = Card.all()
-        end_time = datetime.now()
+    while True:
+        try:
+            start_time = datetime.now()
+            logger.info(f"{start_time}: Fetching all MTG cards...")
 
-        logger.info(f"{end_time}: Successfully fetched all cards")
-        logger.info(f"Total time to fetch cards: {end_time - start_time}")
+            cards = Card.all()
 
-        for card in cards:
-            publish_card(card)
-            time.sleep(1.0 / MESSAGE_RATE) # Rate-limiting publishing if specified
-    except Exception as e:
-        logger.error(f"Error fetching cards: {e}")
+            end_time = datetime.now()
+            logger.info(f"{end_time}: Successfully fetched all cards")
+            logger.info(f"Total time to fetch cards: {end_time - start_time}")
+
+            for card in cards:
+                publish_card(card)
+                time.sleep(1.0 / MESSAGE_RATE)  # Rate-limiting publishing if specified
+            break  # Exit loop if successful
+
+        except HTTPError as e:
+            if e.code == 500:
+                logger.error("HTTP 500 error encountered. Retrying in 60 seconds...")
+                time.sleep(60)
+            else:
+                logger.error(f"HTTP error encountered: {e}")
+                break  # Exit on non-recoverable errors
+        except Exception as e:
+            logger.error(f"Error fetching cards: {e}")
+            break  # Exit loop for unexpected errors
 
 # Run the script
 if __name__ == "__main__":
