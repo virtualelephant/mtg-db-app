@@ -117,7 +117,7 @@ def fetch_and_process_sets():
 
 # Run the script
 if __name__ == "__main__":
-    fetch_cards()
+    fetch_and_process_sets()
 
     # Close connection
     connection.close()
