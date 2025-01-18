@@ -8,14 +8,27 @@ spec:
     spec:
       containers:
         - name: init-db
-          image: harbor.home.virtualelephant.com/ve-lab/postgres-mtg:latest
+          image: harbor.home.virtualelephant.com/library/custom-postgres:latest
           command: ["psql"]
           args:
             - "--host=postgres"
             - "--username=$(POSTGRES_USER)"
             - "--dbname=$(POSTGRES_DB)"
             - "--file=/docker-entrypoint-initdb.d/mtg_schema.sql"
-          envFrom:
-            - secretRef:
-                name: postgres-secret
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
       restartPolicy: OnFailure
