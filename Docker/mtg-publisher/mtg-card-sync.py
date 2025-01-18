@@ -24,6 +24,8 @@ MESSAGE_RATE = float(os.getenv('MESSAGE_RATE', 10))
 
 credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASS)
 
+LAND_CARD_NAMES = {"Plains", "Island", "Swamp", "Mountain", "Forest"}
+
 def create_connection():
     retry_delay = 5
     max_delay  = 60  # Cap the delay
@@ -82,6 +84,9 @@ def fetch_cards_by_set(set_code):
             logger.info(f"Total time to fetch cards: {end_time - start_time}")
 
             for card in cards:
+                if card.name in LAND_CARD_NAMES:
+                    logger.debug(f"Skipping land card: {card.name}")
+                    continue # skipping land cards
                 publish_card(card)
                 time.sleep(1.0 / MESSAGE_RATE)  # Rate-limiting publishing if specified
             break  # Exit loop if successful
