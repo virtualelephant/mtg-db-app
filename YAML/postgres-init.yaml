@@ -13,7 +13,6 @@ spec:
           args:
             - "--host=postgres"
             - "--username=$(POSTGRES_USER)"
-            - "--password=$(POSTGRES_PASSWORD)"
             - "--dbname=$(POSTGRES_DB)"
             - "--file=/docker-entrypoint-initdb.d/mtg_schema.sql"
           env:
@@ -22,7 +21,7 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
+            - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
