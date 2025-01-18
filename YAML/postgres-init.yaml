@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: init-db
-          image: harbor.home.virtualelephant.com/ve-lab/ostgres-mtg:latest
+          image: harbor.home.virtualelephant.com/ve-lab/postgres-mtg:latest
           command: ["psql"]
           args:
             - "--host=postgres"
