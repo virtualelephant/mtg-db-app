@@ -93,7 +93,7 @@ def publish_set(mtg_set, total_cards):
     except Exception as e:
         logger.error(f"Failed to publish set {mtg_set.name}: {e}")
 
-def fetch_cards_by_set(mtg_code):
+def fetch_cards_by_set(mtg_set):
     """Fetch cards and handle HTTP errors with retries."""
     set_code = mtg_set.code
     total_cards = 0
@@ -137,7 +137,7 @@ def fetch_and_process_sets():
         sets = Set.all()
         
         end_time = datetime.now()
-        logger.info(f"{end_time} Successfully fetched {len(sets)} sets.")
+        logger.info(f"{end_time} Successfully fetched {len(sets)} sets")
         logger.info(f"Total time to fetch sets: {end_time - start_time}")
 
         for mtg_set in sets:
