@@ -3,8 +3,6 @@ import time
 import pika
 import logging
 from mtgsdk import Card
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -89,7 +87,7 @@ def fetch_cards():
 
 # Run the script
 if __name__ == "__main__":
-    fetch_and_publish_cards()
+    fetch_cards()
 
     # Close connection
     connection.close()
