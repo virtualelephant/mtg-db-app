@@ -142,7 +142,7 @@ def fetch_and_process_sets():
 
         for mtg_set in sets:
             logger.info(f"Processing set: {mtg_set.name} (code: {mtg_set.code})")
-            fetch_cards_by_set(mtg_set.code)
+            fetch_cards_by_set(mtg_set)
     except Exception as e:
         logger.error(f"Error fetching sets: {e}")
 
