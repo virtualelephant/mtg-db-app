@@ -19,7 +19,8 @@ else:
     RABBITMQ_PORT = int(rabbitmq_port_env)
 RABBITMQ_USER = os.getenv('RABBITMQ_USER', 'deploy')
 RABBITMQ_PASS = os.getenv('RABBITMQ_PASS', 'VMware123!')
-QUEUE_NAME = os.getenv('RABBITMQ_QUEUE', 'mtgcards') 
+CARD_QUEUE_NAME = os.getenv('RABBITMQ_CARD_QUEUE', 'mtgcards') 
+SET_QUEUE_NAME = os.getenv('RABBITMQ_SET_QUEUE', 'mtgsets')
 MESSAGE_RATE = float(os.getenv('MESSAGE_RATE', 10))
 
 credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASS)
@@ -42,8 +43,9 @@ def create_connection():
 # Establish connection to RabbitMQ
 connection = create_connection()
 channel = connection.channel()
-channel.queue_declare(queue=QUEUE_NAME, durable=True, arguments={"x-queue-type": "quorum"})
-logger.info("Successfully declared queue")
+channel.queue_declare(queue=CARD_QUEUE_NAME, durable=True, arguments={"x-queue-type": "quorum"})
+channel.queue_declare(queue=SET_QUEUE_NAME, durable=True, arguments={"x-queue-type": "quorum"})
+logger.info("Successfully declared queues")
 
 def publish_card(card):
     """Publish a card's data to the RabbitMQ queue."""
@@ -70,8 +72,31 @@ def publish_card(card):
     except Exception as e:
         logger.error(f"Failed to publish card {card.name}: {e}")
 
+def publish_set(mtg_set, total_cards):
+    """Publish a set's data to the RabbitMQ set queue."""
+    try:
+        set_message = {
+            "name": mtg_set.name,
+            "code": mtg_set.code,
+            "release_date": mtg_set.release_date,
+            "total_cards": total_cards
+        }
+        channel.basic_publish(
+            exchange='',
+            routing_key=SET_QUEUE_NAME,
+            body=str(set_message),
+            properties=pika.BasicProperties(
+                delivery_mode=2  # Make message persistent
+            )
+        )
+        logger.info(f"Published set: {mtg_set.name}")
+    except Exception as e:
+        logger.error(f"Failed to publish set {mtg_set.name}: {e}")
+
 def fetch_cards_by_set(set_code):
     """Fetch cards and handle HTTP errors with retries."""
+    set_code = mtg_set.code
+    total_cards = 0
     while True:
         try:
             start_time = datetime.now()
@@ -88,6 +113,7 @@ def fetch_cards_by_set(set_code):
                     logger.debug(f"Skipping land card: {card.name}")
                     continue # skipping land cards
                 publish_card(card)
+                total_cards += 1
                 time.sleep(1.0 / MESSAGE_RATE)  # Rate-limiting publishing if specified
             break  # Exit loop if successful
 
