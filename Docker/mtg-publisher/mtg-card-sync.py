@@ -127,6 +127,7 @@ def fetch_cards_by_set(mtg_set):
         except Exception as e:
             logger.error(f"Error fetching cards: {e}")
             break  # Exit loop for unexpected errors
+    publish_set(mtg_set, total_cards)
 
 def fetch_and_process_sets():
     """Fetch all card sets and process them one by one"""
