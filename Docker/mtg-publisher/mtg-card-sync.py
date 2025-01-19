@@ -58,7 +58,8 @@ def publish_card(card):
             "set": card.set,
             "text": card.text,
             "power": card.power,
-            "toughness": card.toughness
+            "toughness": card.toughness,
+            "legalities": card.legalities
         }
         channel.basic_publish(
             exchange='',
