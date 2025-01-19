@@ -43,8 +43,24 @@ BEGIN
             legalities JSONB,
             source TEXT,
             image_url TEXT,
-            set TEXT,
-            set_name TEXT
+            sets TEXT[],
+            set_name TEXT[]
+        );
+    END IF;
+END $$;
+
+-- Create a new table for MTG sets
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_name = 'mtg_sets'
+    ) THEN
+        CREATE TABLE mtg_sets (
+            id SERIAL PRIMARY KEY,
+            set_code TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            release_date DATE,
+            total_cards INTEGER
         );
     END IF;
 END $$;
