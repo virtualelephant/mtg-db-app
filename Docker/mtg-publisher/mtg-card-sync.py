@@ -148,7 +148,14 @@ def fetch_and_process_sets():
 
 # Run the script
 if __name__ == "__main__":
+    script_start_time = datetime.now()
+    logger.info(f"{script_start_time}: Script execution begin")
+    
     fetch_and_process_sets()
+
+    script_end_time = datetime.now()
+    logger.info(f"{script_end_time}: Script execution complete")
+    logger.info(f"Total time to execute script: {script_end_time - script_start_time}")
 
     # Close connection
     connection.close()
