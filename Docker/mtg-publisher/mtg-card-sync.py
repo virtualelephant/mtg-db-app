@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("MTGCardPublisher")
 
 # RabbitMQ Configuration
-RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbitmq.signalwave.svc.cluster.local') 
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbitmq.services.svc.cluster.local') 
 rabbitmq_port_env = os.getenv('RABBITMQ_PORT', '5672')
 if rabbitmq_port_env.startswith('tcp://'):
     RABBITMQ_PORT = int(rabbitmq_port_env.split(":")[-1])

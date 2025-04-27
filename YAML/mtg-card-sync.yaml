@@ -19,7 +19,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: RABBITMQ_HOST
-          value: "rabbitmq.signalwave.svc.cluster.local"
+          value: "rabbitmq.services.svc.cluster.local"
         - name: RABBITMQ_PORT
           value: "5672"
         - name: RABBITMQ_USER
